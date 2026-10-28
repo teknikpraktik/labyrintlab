@@ -2,7 +2,7 @@ import { ALGORITHMS } from "@/lib/search";
 import { nodeLabel } from "@/lib/search/common";
 import type { AlgorithmId, Maze, SearchStep } from "@/lib/search/types";
 
-const MAX_ROWS = 10;
+const MAX_ROWS = 40;
 
 interface DataStructureViewProps {
   maze: Maze;
@@ -24,19 +24,17 @@ export function DataStructureView({ maze, algorithm, step }: DataStructureViewPr
   const lastLabel = algorithm === "bfs" ? "Sist" : algorithm === "dfs" ? "Botten" : null;
 
   return (
-    <section className="panel ds" aria-labelledby="ds-title">
-      <div className="panel-head">
-        <h2 id="ds-title">
-          {info.structure} <span className="muted">({entries.length} st)</span>
-        </h2>
-      </div>
-      <p className="hint">{info.structureHint}</p>
+    <section className="block ds" aria-labelledby="ds-title">
+      <h3 id="ds-title">
+        {info.structure} <span className="muted">({entries.length} st)</span>
+      </h3>
 
       {!step ? (
         <p className="empty">Tryck på Starta eller Steg så visas {info.structureDefinite} här.</p>
       ) : entries.length === 0 ? (
         <p className="empty">{step.found ? "Målet är hittat." : `${capitalize(info.structureDefinite)} är tom.`}</p>
       ) : (
+        <div className="ds-scroll">
         <table className="ds-table">
           <caption className="sr-only">
             Innehållet i {info.structureDefinite}, i den ordning noderna tas ut
@@ -76,6 +74,7 @@ export function DataStructureView({ maze, algorithm, step }: DataStructureViewPr
             })}
           </tbody>
         </table>
+        </div>
       )}
       {entries.length > MAX_ROWS && (
         <p className="hint">… och {entries.length - MAX_ROWS} till längre {algorithm === "dfs" ? "ned" : "bak"}.</p>

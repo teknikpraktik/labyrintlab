@@ -3,7 +3,7 @@
 import { useRef } from "react";
 
 const STEPS = [
-  { title: "Välj bana", text: "Grundbanan för en första genomgång, Fallgropen för att utmana algoritmerna." },
+  { title: "Välj bana", text: "Tre färdiga banor – eller rita en egen och testa dina idéer." },
   { title: "Gissa algoritm", text: "Vilken algoritm tror du fungerar bäst på banan? BFS, DFS, Greedy eller A*?" },
   { title: "Kör stegvis", text: "Klicka på Steg och följ hur algoritmen tar ut noder och fyller på sin kö, stack eller prioritetskö." },
   { title: "Jämför", text: "Kör samma bana med en annan algoritm. Resultaten hamnar i en jämförelsetabell." },

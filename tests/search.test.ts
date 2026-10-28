@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { MAZES, MAZE_IDS } from "../lib/mazes";
+import { FIXED_MAZE_IDS, MAZES, createCustomMaze, withEndpoint, withWall } from "../lib/mazes";
 import { ALGORITHMS, ALGORITHM_IDS, runToEnd, shortestPathLength, toRunResult } from "../lib/search";
 import { manhattan, neighbors, PriorityQueue } from "../lib/search/common";
 import type { Maze, NodeId } from "../lib/search/types";
@@ -14,7 +14,7 @@ function expectValidPath(maze: Maze, path: NodeId[] | null) {
   }
 }
 
-describe.each(MAZE_IDS)("bana %s", (mazeId) => {
+describe.each(FIXED_MAZE_IDS)("bana %s", (mazeId) => {
   const maze = MAZES[mazeId];
   const optimal = shortestPathLength(maze);
 
@@ -61,6 +61,50 @@ describe("Fallgropen", () => {
 
   test("DFS hittar inte kortaste vägen", () => {
     expect(toRunResult("dfs", runToEnd("dfs", maze), optimal).isShortest).toBe(false);
+  });
+});
+
+describe("Återvändsgränden", () => {
+  const maze = MAZES.atervand;
+  const deadEnd = 5 * maze.cols + 10; // K6, korridorens slut
+
+  test.each(["dfs", "greedy", "astar"] as const)("%s går in i återvändsgränden", (algorithm) => {
+    expect(runToEnd(algorithm, maze).visited).toContain(deadEnd);
+  });
+
+  test("DFS hittar inte kortaste vägen", () => {
+    expect(toRunResult("dfs", runToEnd("dfs", maze), shortestPathLength(maze)).isShortest).toBe(false);
+  });
+});
+
+describe("Egen bana", () => {
+  test("en tom egen bana har en väg mellan start och mål", () => {
+    const maze = createCustomMaze();
+    expect(shortestPathLength(maze)).toBe(manhattan(maze, maze.start, maze.goal));
+  });
+
+  test("start och mål kan inte bli väggar, och väggar under ny start tas bort", () => {
+    let maze = createCustomMaze();
+    expect(withWall(maze, maze.start, true)).toBe(maze);
+    maze = withWall(maze, 0, true);
+    maze = withEndpoint(maze, "start", 0);
+    expect(maze.start).toBe(0);
+    expect(maze.walls[0]).toBe(false);
+  });
+
+  test.each(ALGORITHM_IDS)("%s ger upp utan väg när målet är instängt", (algorithm) => {
+    let maze = createCustomMaze();
+    for (const n of neighbors(maze, maze.goal)) maze = withWall(maze, n, true);
+    expect(shortestPathLength(maze)).toBeNull();
+    const last = runToEnd(algorithm, maze);
+    expect(last.finished).toBe(true);
+    expect(last.found).toBe(false);
+    expect(last.path).toBeNull();
+  });
+
+  test("en kopia av en fast bana ger samma resultat", () => {
+    const copy = createCustomMaze(MAZES.fallgrop);
+    expect(runToEnd("astar", copy).visited).toEqual(runToEnd("astar", MAZES.fallgrop).visited);
   });
 });
 

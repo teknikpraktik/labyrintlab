@@ -1,4 +1,6 @@
-import type { CSSProperties, ReactNode } from "react";
+"use client";
+
+import { useRef, type CSSProperties, type PointerEvent, type ReactNode } from "react";
 import { columnLetter, nodeLabel, toRowCol } from "@/lib/search/common";
 import type { AlgorithmId, Maze, NodeId, SearchStep } from "@/lib/search/types";
 
@@ -10,6 +12,15 @@ interface MazeGridProps {
   showValues?: boolean;
   /** Dekorativ variant utan koordinater, t.ex. på startsidan. */
   compact?: boolean;
+  /** Gör rutnätet ritbart (Bana 4). */
+  editor?: MazeEditorHandlers;
+}
+
+export interface MazeEditorHandlers {
+  /** Musknapp/finger ned på en ruta, eller Enter/mellanslag på en ruta. */
+  onPaintStart: (node: NodeId) => void;
+  /** Dragning över ytterligare rutor medan knappen hålls ned. */
+  onPaint: (node: NodeId) => void;
 }
 
 type CellState = "wall" | "path" | "current" | "frontier" | "visited" | "free";
@@ -23,7 +34,8 @@ const STATE_LABEL: Record<CellState, string> = {
   free: "fri",
 };
 
-export function MazeGrid({ maze, step, algorithm, showValues = false, compact = false }: MazeGridProps) {
+export function MazeGrid({ maze, step, algorithm, showValues = false, compact = false, editor }: MazeGridProps) {
+  const paintingRef = useRef<NodeId | null>(null);
   const visited = new Set(step?.visited ?? []);
   const frontier = new Set(step?.frontier.map((e) => e.node) ?? []);
   const added = new Set([...(step?.addedNodes ?? []), ...(step?.updatedNodes ?? [])]);
@@ -55,18 +67,39 @@ export function MazeGrid({ maze, step, algorithm, showValues = false, compact = 
     const isGoal = node === maze.goal;
     const value = valueOf(node);
     const role = isStart ? "start, " : isGoal ? "mål, " : "";
-    cells.push(
-      <div
-        key={node}
-        className={`cell cell-${state}${added.has(node) && state === "frontier" ? " cell-new" : ""}`}
-        style={{ gridRow: row + offset, gridColumn: col + offset }}
-        title={compact ? undefined : `${nodeLabel(maze, node)}: ${role}${STATE_LABEL[state]}`}
-      >
+    const className = `cell cell-${state}${added.has(node) && state === "frontier" ? " cell-new" : ""}`;
+    const style = { gridRow: row + offset, gridColumn: col + offset };
+    const label = `${nodeLabel(maze, node)}: ${role}${STATE_LABEL[state]}`;
+    const content = (
+      <>
         {isStart && <span className="cell-symbol">S</span>}
         {isGoal && <GoalFlag />}
         {!isStart && !isGoal && value !== undefined && <span className="cell-value">{value}</span>}
         {!isStart && !isGoal && state === "visited" && value === undefined && <span className="cell-dot" />}
-      </div>,
+      </>
+    );
+    cells.push(
+      editor ? (
+        <button
+          key={node}
+          type="button"
+          data-node={node}
+          className={className}
+          style={style}
+          aria-label={label}
+          onClick={(e) => {
+            // Mus och pekskärm hanteras av pointer-händelserna nedan;
+            // här fångas bara tangentbordet (detail === 0).
+            if (e.detail === 0) editor.onPaintStart(node);
+          }}
+        >
+          {content}
+        </button>
+      ) : (
+        <div key={node} className={className} style={style} title={compact ? undefined : label}>
+          {content}
+        </div>
+      ),
     );
   }
 
@@ -77,13 +110,41 @@ export function MazeGrid({ maze, step, algorithm, showValues = false, compact = 
     })
     .join(" ");
 
+  const nodeAt = (x: number, y: number): NodeId | null => {
+    const el = document.elementFromPoint(x, y)?.closest<HTMLElement>("[data-node]");
+    return el ? Number(el.dataset.node) : null;
+  };
+
+  const startPaint = (e: PointerEvent<HTMLDivElement>) => {
+    if (!editor || e.button !== 0) return;
+    const node = nodeAt(e.clientX, e.clientY);
+    if (node === null) return;
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    paintingRef.current = node;
+    editor.onPaintStart(node);
+  };
+
+  const continuePaint = (e: PointerEvent<HTMLDivElement>) => {
+    if (!editor || paintingRef.current === null) return;
+    const node = nodeAt(e.clientX, e.clientY);
+    if (node === null || node === paintingRef.current) return;
+    // Snabba drag kan hoppa över rutor – fyll i alla rutor längs linjen.
+    for (const n of lineBetween(maze, paintingRef.current, node)) editor.onPaint(n);
+    paintingRef.current = node;
+  };
+
   return (
     <div className={`maze${compact ? " maze-compact" : ""}`} style={{ "--cols": maze.cols, "--rows": maze.rows } as CSSProperties}>
       <div
-        className="maze-grid"
-        role="img"
-        aria-label={compact ? undefined : gridDescription(maze, step)}
+        className={`maze-grid${editor ? " maze-editable" : ""}`}
+        role={editor ? "group" : "img"}
+        aria-label={compact ? undefined : editor ? "Rita banan: klicka eller dra över rutor" : gridDescription(maze, step)}
         aria-hidden={compact || undefined}
+        onPointerDown={editor ? (e) => startPaint(e) : undefined}
+        onPointerMove={editor ? (e) => continuePaint(e) : undefined}
+        onPointerUp={editor ? () => (paintingRef.current = null) : undefined}
+        onPointerCancel={editor ? () => (paintingRef.current = null) : undefined}
         style={{
           gridTemplateColumns: `${compact ? "" : "var(--head) "}repeat(${maze.cols}, 1fr)`,
           gridTemplateRows: `${compact ? "" : "var(--head) "}repeat(${maze.rows}, auto)`,
@@ -125,6 +186,20 @@ export function GoalFlag() {
       <path d="M7 4h11l-3 4.5L18 13H7z" />
     </svg>
   );
+}
+
+/** Rutorna på en rak linje från a (exklusive) till b (inklusive). */
+function lineBetween(maze: Maze, a: NodeId, b: NodeId): NodeId[] {
+  const from = toRowCol(maze, a);
+  const to = toRowCol(maze, b);
+  const steps = Math.max(Math.abs(to.row - from.row), Math.abs(to.col - from.col));
+  const result: NodeId[] = [];
+  for (let i = 1; i <= steps; i++) {
+    const row = Math.round(from.row + ((to.row - from.row) * i) / steps);
+    const col = Math.round(from.col + ((to.col - from.col) * i) / steps);
+    result.push(row * maze.cols + col);
+  }
+  return result;
 }
 
 function gridDescription(maze: Maze, step: SearchStep | null): string {

@@ -1,4 +1,4 @@
-import type { Maze, MazeId } from "./search/types";
+import type { FixedMazeId, Maze, MazeId, NodeId } from "./search/types";
 
 /**
  * De två fasta banorna i LabyrintLab.
@@ -6,8 +6,9 @@ import type { Maze, MazeId } from "./search/types";
  * Banorna ritas som text:  "#" = vägg, "." = fri ruta, "S" = start, "M" = mål.
  * Kolumner betecknas A, B, C … och rader 1, 2, 3 … i gränssnittet.
  *
- * Att det bara finns två banor är ett medvetet pedagogiskt val: fokus ska
- * ligga på att jämföra algoritmerna på *samma* problem, inte på många banor.
+ * Att det bara finns ett fåtal banor är ett medvetet pedagogiskt val: fokus
+ * ska ligga på att jämföra algoritmerna på *samma* problem, inte på många banor.
+ * Utöver de fasta banorna kan eleven rita en egen bana (Bana 4).
  */
 
 interface MazeDefinition {
@@ -86,6 +87,41 @@ const FALLGROPEN: MazeDefinition = {
   ],
 };
 
+/**
+ * Bana 3: Återvändsgränden
+ *
+ * Pedagogiskt syfte:
+ *  - Från start går en lång korridor rakt mot målet – men den är stängd i
+ *    slutet. Den enda vägen ut ur korridoren är en öppning nedåt nära start.
+ *  - Greedy rusar in i korridoren (h minskar hela tiden), når återvändsgränden
+ *    och måste sedan backa. Den hittar till slut en kort väg, men har slösat
+ *    många besök på korridoren.
+ *  - Även A* går in i korridoren: Manhattanavståndet "ser" inte väggar, så
+ *    korridoren ser billig ut (f = 14) ända tills den tar slut. Bra
+ *    diskussionsfråga: en heuristik är bara en uppskattning.
+ *  - DFS (upp, höger, ned, vänster) går först hela vägen in i
+ *    återvändsgränden, backar, och tar sedan en lång omväg via övre delen.
+ *  - BFS hittar kortaste vägen men breder ut sig över nästan hela banan.
+ */
+const ATERVANDSGRANDEN: MazeDefinition = {
+  id: "atervand",
+  name: "Bana 3: Återvändsgränden",
+  description: "En korridor pekar rakt mot målet – men tar slut. Vilka algoritmer går in, och hur tar de sig ut?",
+  layout: [
+    "...............",
+    ".#...#...#...#.",
+    "...............",
+    "...............",
+    "#############..",
+    "S..........##.M",
+    "##.##########..",
+    "...............",
+    ".#...#...#...#.",
+    "...............",
+    "...............",
+  ],
+};
+
 function parseMaze(def: MazeDefinition): Maze {
   const rows = def.layout.length;
   const cols = def.layout[0].length;
@@ -112,9 +148,53 @@ function parseMaze(def: MazeDefinition): Maze {
   return { id: def.id, name: def.name, description: def.description, rows, cols, walls, start, goal };
 }
 
-export const MAZES: Record<MazeId, Maze> = {
+export const MAZES: Record<FixedMazeId, Maze> = {
   grund: parseMaze(GRUNDBANAN),
   fallgrop: parseMaze(FALLGROPEN),
+  atervand: parseMaze(ATERVANDSGRANDEN),
 };
 
-export const MAZE_IDS: MazeId[] = ["grund", "fallgrop"];
+export const FIXED_MAZE_IDS: FixedMazeId[] = ["grund", "fallgrop", "atervand"];
+
+export const MAZE_IDS: MazeId[] = [...FIXED_MAZE_IDS, "egen"];
+
+export const CUSTOM_MAZE_NAME = "Bana 4: Egen bana";
+
+/**
+ * Bana 4: Egen bana
+ *
+ * Eleven ritar väggar och flyttar start och mål. Banan har samma storlek som
+ * de fasta banorna och körs med exakt samma algoritmer och visualisering.
+ * Den sparas bara i minnet under sessionen.
+ */
+export function createCustomMaze(template?: Maze): Maze {
+  const rows = template?.rows ?? 11;
+  const cols = template?.cols ?? 15;
+  return {
+    id: "egen",
+    name: CUSTOM_MAZE_NAME,
+    description: "Rita väggar och flytta start och mål. Kör sedan algoritmerna på din egen bana.",
+    rows,
+    cols,
+    walls: template ? [...template.walls] : new Array(rows * cols).fill(false),
+    start: template?.start ?? 5 * cols + 1,
+    goal: template?.goal ?? 5 * cols + (cols - 2),
+  };
+}
+
+/** Sätter en ruta till vägg eller fri. Start och mål kan inte bli väggar. */
+export function withWall(maze: Maze, node: NodeId, wall: boolean): Maze {
+  if (node === maze.start || node === maze.goal || maze.walls[node] === wall) return maze;
+  const walls = [...maze.walls];
+  walls[node] = wall;
+  return { ...maze, walls };
+}
+
+/** Flyttar start eller mål. En vägg på den nya platsen tas bort. */
+export function withEndpoint(maze: Maze, which: "start" | "goal", node: NodeId): Maze {
+  const other = which === "start" ? maze.goal : maze.start;
+  if (node === other) return maze;
+  const walls = [...maze.walls];
+  walls[node] = false;
+  return { ...maze, walls, [which]: node };
+}

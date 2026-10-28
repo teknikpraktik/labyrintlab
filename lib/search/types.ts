@@ -9,7 +9,11 @@ export type NodeId = number;
 
 export type AlgorithmId = "bfs" | "dfs" | "greedy" | "astar";
 
-export type MazeId = "grund" | "fallgrop";
+/** De fasta banorna. */
+export type FixedMazeId = "grund" | "fallgrop" | "atervand";
+
+/** Alla banor, inklusive den bana eleven ritar själv. */
+export type MazeId = FixedMazeId | "egen";
 
 export interface Maze {
   id: MazeId;

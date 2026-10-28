@@ -15,6 +15,8 @@ export interface AlgorithmInfo {
   /** Bestämd form, t.ex. "kön" eller "stacken". */
   structureDefinite: string;
   structureHint: string;
+  /** Mycket kort beskrivning, t.ex. för förutsägelsen. */
+  tagline: string;
   /** Vad algoritmen väljer nästa nod efter. */
   priority: string | null;
   description: string;
@@ -24,6 +26,7 @@ export interface AlgorithmInfo {
 export const ALGORITHMS: Record<AlgorithmId, AlgorithmInfo> = {
   bfs: {
     id: "bfs",
+    tagline: "Bredden först · kö",
     name: "BFS",
     fullName: "Bredden först-sökning",
     kind: "Oinformerad",
@@ -37,6 +40,7 @@ export const ALGORITHMS: Record<AlgorithmId, AlgorithmInfo> = {
   },
   dfs: {
     id: "dfs",
+    tagline: "Djupet först · stack",
     name: "DFS",
     fullName: "Djupet först-sökning",
     kind: "Oinformerad",
@@ -49,6 +53,7 @@ export const ALGORITHMS: Record<AlgorithmId, AlgorithmInfo> = {
   },
   greedy: {
     id: "greedy",
+    tagline: "Närmast målet · prioritetskö",
     name: "Greedy",
     fullName: "Greedy Best-First Search",
     kind: "Informerad",
@@ -62,6 +67,7 @@ export const ALGORITHMS: Record<AlgorithmId, AlgorithmInfo> = {
   },
   astar: {
     id: "astar",
+    tagline: "Kostnad + uppskattning · prioritetskö",
     name: "A*",
     fullName: "A-stjärna",
     kind: "Informerad",

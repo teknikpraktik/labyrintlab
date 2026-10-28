@@ -21,18 +21,23 @@ Varje övning följer sekvensen **förutsäg → testa → observera → jämfö
 4. **Jämför** – Kör samma bana med en annan algoritm. Resultaten samlas i en tabell.
 5. **Reflektera** – Diskutera frågorna som visas när minst två algoritmer körts.
 
+Stegen i raden högst upp fungerar som flikar: panelen till höger visar ett steg i taget, så att labyrinten och det aktuella steget ryms på skärmen utan att man behöver scrolla. Appen går vidare till nästa steg av sig själv vid naturliga tillfällen (t.ex. Starta → Observera), men man kan alltid klicka sig fram och tillbaka.
+
 Ingen algoritm markeras som "vinnare" – eleverna ska resonera om vad som är bäst beroende på vad man värderar.
 
 ### Banorna
 
-Det finns medvetet bara två fasta banor, så att fokus ligger på jämförelsen mellan algoritmer.
+Det finns medvetet bara tre fasta banor, så att fokus ligger på jämförelsen mellan algoritmer. Siffrorna är besökta noder / väglängd.
 
 | Bana | Syfte | BFS | DFS | Greedy | A\* |
 |---|---|---|---|---|---|
 | **1. Grundbanan** | Alla hittar fram. BFS:s bredd och DFS:s djupa sökning syns tydligt; Greedy och A\* går en intuitiv väg. | 121 besökta / väg 20 | 27 / 26 | 23 / 20 | 23 / 20 |
 | **2. Fallgropen** | En korridor pekar rakt mot målet men blir en lång omväg. Greedy och DFS går i fällan, A\* vänder i tid. | 79 / 18 | 50 / 32 | 33 / 32 | 35 / 18 |
+| **3. Återvändsgränden** | En korridor pekar rakt mot målet men är stängd. DFS, Greedy och även A\* går in och måste backa – heuristiken "ser" inte väggar. | 70 / 18 | 85 / 24 | 27 / 18 | 27 / 18 |
 
-Det pedagogiska syftet med varje bana är dokumenterat i [lib/mazes.ts](lib/mazes.ts). Siffrorna ovan kontrolleras av testerna.
+**Bana 4: Egen bana.** Eleven ritar väggar (klicka eller dra), flyttar start och mål (dra S eller flaggan, eller använd verktygen Start/Mål) och kan börja från en tom bana eller en kopia av en fast bana. Panelen visar hela tiden om det finns en väg och hur lång den kortaste är. Banan körs med exakt samma algoritmer, stegning och jämförelse som de fasta banorna. Ritläget är aktivt i steget Förutsäg; när banan ändras rensas tidigare resultat för den, eftersom de inte längre gäller. Finns ingen väg söker algoritmerna igenom allt de når och ger sedan upp, vilket också går att diskutera. Den egna banan finns bara i minnet under sessionen.
+
+Det pedagogiska syftet med varje bana är dokumenterat i [lib/mazes.ts](lib/mazes.ts), och banornas viktigaste egenskaper (t.ex. att Greedy luras i Fallgropen och att A\* går in i återvändsgränden) kontrolleras av testerna.
 
 ### Viktiga definitioner
 
@@ -47,8 +52,8 @@ Det pedagogiska syftet med varje bana är dokumenterat i [lib/mazes.ts](lib/maze
 
 ### Projektor och tangentbord
 
-- **Fokusläge** döljer introduktion och jämförelse och förstorar labyrinten och datastrukturen. `Esc` lämnar fokusläget.
-- Tangenten **→** kör ett steg.
+- **Fokusläge** döljer rubrikrad och arbetsgång så att labyrinten och panelen blir så stora som möjligt. `Esc` lämnar fokusläget.
+- Tangenten **→** kör ett steg (i Observera).
 - Start och mål har symboler (S och flagga), och besökta/frontier/aktuell nod har både färg och mönster, så färg är inte den enda informationsbäraren.
 
 ## Kom igång
@@ -73,15 +78,15 @@ app/
   lab/page.tsx          Själva labbet
   layout.tsx, globals.css
 components/
-  Lab.tsx               Tillstånd: bana, algoritm, gissning, resultat, fokusläge
-  MazeGrid.tsx          Rutnätet (ren presentation, ingen algoritmlogik)
+  Lab.tsx               Tillstånd och layout: aktivt steg, bana, algoritm, gissning, resultat
+  MazeGrid.tsx          Rutnätet, inklusive ritläget för den egna banan (ingen algoritmlogik)
   DataStructureView.tsx Kö / stack / prioritetskö med g, h, f
-  Panels.tsx            Arbetsgång, förutsägelse, mätvärden, jämförelse, reflektion
+  Panels.tsx            Arbetsgång (flikar), algoritminfo, mätvärden, jämförelse, reflektion
   HowItWorks.tsx        "Så fungerar det"-dialogen
 hooks/
   useSearchRunner.ts    Driver en algoritm: Steg, Auto, Pausa, Snabbkör, Återställ
 lib/
-  mazes.ts              De två fasta banorna med pedagogiska kommentarer
+  mazes.ts              De tre fasta banorna och hjälpfunktioner för den egna banan
   describe.ts           Svensk förklaring av varje steg
   search/
     types.ts            Maze, SearchStep, FrontierEntry …
