@@ -2,8 +2,9 @@
 
 **Testa, jämför och förstå sökalgoritmer**
 
-LabyrintLab är ett pedagogiskt verktyg för gymnasiekursen *Artificiell intelligens nivå 1*. Eleverna förutsäger, kör steg för steg och jämför fyra sökalgoritmer i samma labyrint:
+LabyrintLab är ett pedagogiskt verktyg för gymnasiekursen *Artificiell intelligens nivå 1*. Eleverna förutsäger, kör steg för steg och jämför fem sökmetoder i samma labyrint:
 
+- **Slump** – slumpmässig sökning (lista med slumpvis uttag, oinformerad). Fungerar som referenspunkt: hur mycket bättre än slumpen är de andra?
 - **BFS** – bredden först-sökning (kö, oinformerad)
 - **DFS** – djupet först-sökning (stack, oinformerad)
 - **Greedy Best-First Search** (prioritetskö på h, informerad)
@@ -37,6 +38,8 @@ Det finns medvetet bara tre fasta banor, så att fokus ligger på jämförelsen 
 
 **Bana 4: Egen bana.** Eleven ritar väggar (klicka eller dra), flyttar start och mål (dra S eller flaggan, eller använd verktygen Start/Mål) och kan börja från en tom bana eller en kopia av en fast bana. Panelen visar hela tiden om det finns en väg och hur lång den kortaste är. Banan körs med exakt samma algoritmer, stegning och jämförelse som de fasta banorna. Ritläget är aktivt i steget Förutsäg; när banan ändras rensas tidigare resultat för den, eftersom de inte längre gäller. Finns ingen väg söker algoritmerna igenom allt de når och ger sedan upp, vilket också går att diskutera. Den egna banan finns bara i minnet under sessionen.
 
+**Slump** ger olika resultat varje gång. På Grundbanan besöker den typiskt 75–125 noder (median 115) med en väg på 20–28 steg, och på Fallgropen och Återvändsgränden blir vägen oftast runt 22 steg. Kör den gärna flera gånger och jämför – resultattabellen visar den senaste körningen.
+
 Det pedagogiska syftet med varje bana är dokumenterat i [lib/mazes.ts](lib/mazes.ts), och banornas viktigaste egenskaper (t.ex. att Greedy luras i Fallgropen och att A\* går in i återvändsgränden) kontrolleras av testerna.
 
 ### Viktiga definitioner
@@ -47,6 +50,7 @@ Det pedagogiska syftet med varje bana är dokumenterat i [lib/mazes.ts](lib/maze
 - **Väglängd:** antal förflyttningar från start till mål.
 - **Max frontier:** största antal noder i kön/stacken/prioritetskön samtidigt – en förenklad proxy för minnesbehov.
 - **Kortaste väg: Ja/Nej:** "Den väg som algoritmen hittade har samma längd som den kortaste möjliga vägen i denna bana." Den optimala längden beräknas internt med BFS.
+- **Slump:** nästa nod lottas fram i det ögonblick man klickar på Steg, därför visas ingen "Nästa" i listan. Testerna använder en slumptalsgenerator med fast frö så att de blir reproducerbara.
 - **Lika prioritet:** Greedy tar ut den nod som lades in först. A\* väljer lägst h vid lika f, därefter den som lades in först.
 - Exekveringstid visas medvetet inte – den beror på dator och implementation.
 
@@ -91,7 +95,7 @@ lib/
   search/
     types.ts            Maze, SearchStep, FrontierEntry …
     common.ts           Grannar, Manhattanavstånd, prioritetskö, vägrekonstruktion
-    bfs.ts  dfs.ts  greedy.ts  astar.ts
+    random.ts  bfs.ts  dfs.ts  greedy.ts  astar.ts
     index.ts            Algoritmregister, resultatmått
 tests/
   search.test.ts

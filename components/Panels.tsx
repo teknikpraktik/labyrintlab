@@ -187,6 +187,7 @@ export function Comparison({ results, prediction }: ComparisonProps) {
 }
 
 const GENERAL_QUESTIONS = [
+  "Hur mycket bättre än slumpen var de andra algoritmerna? Blir Slump likadan om du kör den igen?",
   "Vilken algoritm undersökte minst antal noder?",
   "Vilken hittade kortast väg?",
   "Vilken använde störst frontier?",

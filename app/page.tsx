@@ -24,7 +24,7 @@ export default function Home() {
           </Link>
           <HowItWorks className="btn btn-ghost btn-large" />
         </div>
-        <p className="home-algos">BFS · DFS · Greedy Best-First Search · A*</p>
+        <p className="home-algos">Slump · BFS · DFS · Greedy Best-First Search · A*</p>
       </div>
       <div className="home-preview">
         <MazeGrid maze={MAZES.fallgrop} step={preview} compact />

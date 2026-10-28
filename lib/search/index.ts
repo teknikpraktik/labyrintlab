@@ -3,6 +3,7 @@ import { bfs } from "./bfs";
 import { pathLength } from "./common";
 import { dfs } from "./dfs";
 import { greedy } from "./greedy";
+import { randomSearch } from "./random";
 import type { AlgorithmId, Maze, SearchFunction, SearchStep } from "./types";
 
 export interface AlgorithmInfo {
@@ -24,6 +25,20 @@ export interface AlgorithmInfo {
 }
 
 export const ALGORITHMS: Record<AlgorithmId, AlgorithmInfo> = {
+  random: {
+    id: "random",
+    tagline: "Slumpvis val · lista",
+    name: "Slump",
+    fullName: "Slumpmässig sökning",
+    kind: "Oinformerad",
+    structure: "Lista",
+    structureDefinite: "listan",
+    structureHint: "Ingen ordning – nästa nod lottas fram bland alla noder i listan.",
+    priority: null,
+    description:
+      "Väljer en slumpmässig nod bland dem som väntar. Ingen strategi alls – ett mått på hur bra de andra är.",
+    run: (maze) => randomSearch(maze),
+  },
   bfs: {
     id: "bfs",
     tagline: "Bredden först · kö",
@@ -81,7 +96,7 @@ export const ALGORITHMS: Record<AlgorithmId, AlgorithmInfo> = {
   },
 };
 
-export const ALGORITHM_IDS: AlgorithmId[] = ["bfs", "dfs", "greedy", "astar"];
+export const ALGORITHM_IDS: AlgorithmId[] = ["random", "bfs", "dfs", "greedy", "astar"];
 
 /** Kör en algoritm till slut och returnerar sista steget. */
 export function runToEnd(algorithm: AlgorithmId, maze: Maze): SearchStep {

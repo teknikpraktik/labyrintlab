@@ -661,6 +661,24 @@ a {
   padding: 0;
 }
 
+/* Slump är referenspunkten och får en egen rad överst. */
+.predict-list li:first-child {
+  grid-column: 1 / -1;
+}
+
+.predict-list.is-compact {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.predict-list.is-compact li:first-child {
+  grid-column: auto;
+}
+
+.predict-list.is-compact .predict-choice {
+  align-items: center;
+  padding-inline: 0.3rem;
+}
+
 .predict-choice {
   display: flex;
   flex-direction: column;

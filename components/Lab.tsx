@@ -47,7 +47,7 @@ function shortName(id: MazeId): string {
 export function Lab() {
   const [phase, setPhase] = useState<Phase>(0);
   const [mazeId, setMazeId] = useState<MazeId>("grund");
-  const [algorithm, setAlgorithm] = useState<AlgorithmId>("bfs");
+  const [algorithm, setAlgorithm] = useState<AlgorithmId>("random");
   const [predictions, setPredictions] = useState<Partial<Record<MazeId, AlgorithmId>>>({});
   // Resultaten finns bara i minnet under sessionen – inget sparas mellan besök.
   const [results, setResults] = useState<ResultsByMaze>({ grund: {}, fallgrop: {}, atervand: {}, egen: {} });
@@ -304,7 +304,7 @@ export function Lab() {
               )}
               <div className="block">
                 <h3 id="predict-title">Vilken algoritm tror du fungerar bäst på denna bana?</h3>
-                <ul className="predict-list" aria-labelledby="predict-title">
+                <ul className={`predict-list${isCustom ? " is-compact" : ""}`} aria-labelledby="predict-title">
                   {ALGORITHM_IDS.map((id) => (
                     <li key={id}>
                       <button

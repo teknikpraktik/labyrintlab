@@ -7,7 +7,7 @@
 
 export type NodeId = number;
 
-export type AlgorithmId = "bfs" | "dfs" | "greedy" | "astar";
+export type AlgorithmId = "random" | "bfs" | "dfs" | "greedy" | "astar";
 
 /** De fasta banorna. */
 export type FixedMazeId = "grund" | "fallgrop" | "atervand";

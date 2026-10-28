@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import { FIXED_MAZE_IDS, MAZES, createCustomMaze, withEndpoint, withWall } from "../lib/mazes";
 import { ALGORITHMS, ALGORITHM_IDS, runToEnd, shortestPathLength, toRunResult } from "../lib/search";
 import { manhattan, neighbors, PriorityQueue } from "../lib/search/common";
+import { randomSearch } from "../lib/search/random";
 import type { Maze, NodeId } from "../lib/search/types";
 
 function expectValidPath(maze: Maze, path: NodeId[] | null) {
@@ -114,6 +115,36 @@ describe("Grundbanan", () => {
     const greedy = runToEnd("greedy", maze);
     expect(greedy.path!.length - 1).toBe(shortestPathLength(maze));
     expect(greedy.visited.length).toBeLessThan(runToEnd("bfs", maze).visited.length);
+  });
+});
+
+describe("Slump", () => {
+  /** Enkel deterministisk slumptalsgenerator för reproducerbara tester. */
+  const seeded = (seed: number) => () => {
+    seed = (seed * 1664525 + 1013904223) % 4294967296;
+    return seed / 4294967296;
+  };
+  const run = (seed: number) => [...randomSearch(MAZES.grund, seeded(seed))].at(-1)!;
+
+  test("samma frö ger samma sökning", () => {
+    expect(run(1).visited).toEqual(run(1).visited);
+  });
+
+  test("olika frön ger olika sökningar", () => {
+    const orders = new Set([1, 2, 3, 4, 5].map((seed) => run(seed).visited.join(",")));
+    expect(orders.size).toBeGreaterThan(1);
+  });
+
+  test.each([1, 2, 3, 4, 5])("hittar alltid en giltig väg (frö %i)", (seed) => {
+    const last = run(seed);
+    expect(last.found).toBe(true);
+    expectValidPath(MAZES.grund, last.path);
+  });
+
+  test("slumpen följer ingen ordning – den är sällan bättre än A*", () => {
+    const astarVisited = runToEnd("astar", MAZES.grund).visited.length;
+    const better = [1, 2, 3, 4, 5, 6, 7, 8].filter((seed) => run(seed).visited.length < astarVisited);
+    expect(better.length).toBeLessThan(4);
   });
 });
 

@@ -17,6 +17,8 @@ function where(algorithm: AlgorithmId): { from: string; into: string } {
       return { from: "från början av kön", into: "sist i kön" };
     case "dfs":
       return { from: "från toppen av stacken", into: "överst på stacken" };
+    case "random":
+      return { from: "– den lottades fram ur listan", into: "i listan" };
     default:
       return { from: "ur prioritetskön", into: "i prioritetskön" };
   }

@@ -20,7 +20,9 @@ export function DataStructureView({ maze, algorithm, step }: DataStructureViewPr
   const shown = entries.slice(0, MAX_ROWS);
   const added = new Set(step?.addedNodes ?? []);
   const updated = new Set(step?.updatedNodes ?? []);
-  const firstLabel = algorithm === "dfs" ? "Topp" : "Nästa";
+  // Vid slumpmässig sökning finns ingen "nästa" – den lottas fram vid nästa steg.
+  const isRandom = algorithm === "random";
+  const firstLabel = isRandom ? 1 : algorithm === "dfs" ? "Topp" : "Nästa";
   const lastLabel = algorithm === "bfs" ? "Sist" : algorithm === "dfs" ? "Botten" : null;
 
   return (
@@ -28,6 +30,7 @@ export function DataStructureView({ maze, algorithm, step }: DataStructureViewPr
       <h3 id="ds-title">
         {info.structure} <span className="muted">({entries.length} st)</span>
       </h3>
+      {isRandom && step && !step.finished && <p className="hint">Nästa nod lottas fram när du klickar på Steg.</p>}
 
       {!step ? (
         <p className="empty">Tryck på Starta eller Steg så visas {info.structureDefinite} här.</p>
@@ -37,7 +40,7 @@ export function DataStructureView({ maze, algorithm, step }: DataStructureViewPr
         <div className="ds-scroll">
         <table className="ds-table">
           <caption className="sr-only">
-            Innehållet i {info.structureDefinite}, i den ordning noderna tas ut
+            Innehållet i {info.structureDefinite}, {isRandom ? "i den ordning noderna lades in" : "i den ordning noderna tas ut"}
           </caption>
           <thead>
             <tr>
@@ -55,7 +58,7 @@ export function DataStructureView({ maze, algorithm, step }: DataStructureViewPr
             {shown.map((entry, i) => {
               const isLast = i === entries.length - 1 && entries.length > 1;
               return (
-                <tr key={entry.node} className={i === 0 ? "ds-next" : undefined}>
+                <tr key={entry.node} className={i === 0 && !isRandom ? "ds-next" : undefined}>
                   <td className="ds-pos">{i === 0 ? firstLabel : isLast && lastLabel ? lastLabel : i + 1}</td>
                   <td className="ds-node">{nodeLabel(maze, entry.node)}</td>
                   {algorithm === "astar" && <td className="num">{entry.g}</td>}

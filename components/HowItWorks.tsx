@@ -4,7 +4,7 @@ import { useRef } from "react";
 
 const STEPS = [
   { title: "Välj bana", text: "Tre färdiga banor – eller rita en egen och testa dina idéer." },
-  { title: "Gissa algoritm", text: "Vilken algoritm tror du fungerar bäst på banan? BFS, DFS, Greedy eller A*?" },
+  { title: "Gissa algoritm", text: "Vilken algoritm tror du fungerar bäst på banan? Slump, BFS, DFS, Greedy eller A*?" },
   { title: "Kör stegvis", text: "Klicka på Steg och följ hur algoritmen tar ut noder och fyller på sin kö, stack eller prioritetskö." },
   { title: "Jämför", text: "Kör samma bana med en annan algoritm. Resultaten hamnar i en jämförelsetabell." },
   { title: "Diskutera", text: "Använd reflektionsfrågorna: vad är ”bäst”, och varför blev resultaten olika?" },
